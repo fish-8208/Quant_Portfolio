@@ -87,9 +87,9 @@ class GBMAssetSimulator:
                 map(
                     int,
                     np.random.pareto(
-                        self.pareto_shape,
+                        self.pareto_shape,              # Generates random volume data from the pareto distribution
                         size=len(data)
-                    ) * 1000000
+                    )
             )
         )
         )
@@ -145,5 +145,5 @@ def cli(num_assets, random_seed, start_date, end_date, output_dir, symbol_length
         print('Generating asset path %d of %d...' % (i+1, num_assets))
         gbmas()
 
-if __name__ == "__main__":
-    cli()
+if __name__ == "__main__":                              # Allows GBM.py to be both a CLI tool and Library
+    cli()                                               # Will not run if added to another notebook or script unless specifically requested in the terminal.
