@@ -1,0 +1,18 @@
+run_name: strat2_21d_5pct_prop
+strategy: strat2
+
+start: "2005-01-01"
+end: null
+source: stooq
+cache: price_cache.parquet
+out: outputs
+
+tickers: ["SPY", "ACWI"]
+weights: [0.7, 0.3]
+
+# Strategy 2 parameters
+window: 21
+threshold: 0.05
+mode: proportional
+fixed: 50        # ignored in proportional mode
+k: 1000          # $ invested per 1.0 drawdown (0.05 → $50)

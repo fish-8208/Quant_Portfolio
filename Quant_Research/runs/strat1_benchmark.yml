@@ -1,0 +1,11 @@
+run name: strat1_benchmark.yml
+strategy: strat1
+
+start: "1995-01-01"
+end: null
+source: stooq
+cache: price_cache.parquet
+out: outputs
+
+tickers: ["SPY", "ACWI"]
+weights: [0.7, 0.3]

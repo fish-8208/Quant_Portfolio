@@ -1,0 +1,17 @@
+run_name: strat3_peakdd_10pct_fixed_50
+strategy: strat3
+
+start: "2005-01-01"
+end: null
+source: stooq
+cache: price_cache.parquet
+out: outputs
+
+tickers: ["SPY", "ACWI"]
+weights: [0.7, 0.3]
+
+# strategy params
+threshold: 0.10
+mode: fixed
+fixed: 50
+k: 1000
