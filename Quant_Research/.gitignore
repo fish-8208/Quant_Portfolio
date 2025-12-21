@@ -1,0 +1,41 @@
+# =========================
+# Quant_Research .gitignore
+# =========================
+
+# --- Backtest outputs ---
+outputs/
+*.csv
+*.json
+
+# If you want to keep example outputs later,
+# comment out the above lines and selectively include files.
+
+# --- Cached market data ---
+*.parquet
+price_cache.parquet
+
+# --- Python bytecode ---
+__pycache__/
+*.py[cod]
+*.pyo
+
+# --- Virtual environments ---
+.venv/
+.env/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+
+# --- Test / coverage ---
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Temporary files ---
+*.tmp
+*.swp
+*.bak
