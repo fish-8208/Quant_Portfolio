@@ -1,0 +1,12 @@
+name: quant_research
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - pyarrow
+  - matplotlib
+  - scipy
+  - ipykernel
+prefix: /Users/thomasfish/miniforge3/envs/quant_research
