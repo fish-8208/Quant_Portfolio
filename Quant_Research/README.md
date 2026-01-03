@@ -1,200 +1,230 @@
-# Quant Backtest Research Framework
+# Quant Research → Live Decision Framework
 
-A modular, reproducible Python framework for researching systematic investment and accumulation strategies.  
-Built as a **personal quantitative research project** to develop and demonstrate skills relevant to quantitative finance, trading, and research roles.
+A modular Python framework for **quantitative research, strategy validation, and live decision-making** for systematic investment strategies.
 
-This repository is intended as a **research and learning framework**, not a production trading system.
+Originally built as a **backtesting and research framework**, this project has evolved into a **research → paper-trading → live execution pipeline**, designed to mirror how real quantitative trading systems are structured.
 
-## Overview
+> ⚠️ **Disclaimer**  
+> This repository is a personal research and learning project.  
+> Live trading components are implemented cautiously, with strong safety guards, and are not intended as a turnkey production trading system.
 
-This project provides a backtesting framework for evaluating long-term, systematic investment strategies, with a focus on disciplined accumulation rules and drawdown-aware allocation logic.
+## High-Level Architecture
+'''
+┌──────────────────────────────┐
+│ Research & Backtesting       │
+│ (quant_backtest)             │
+│                              │
+│ - Historical data            │
+│ - Strategy logic             │
+│ - Portfolio accounting       │
+│ - Performance metrics        │
+└──────────────┬───────────────┘
+               │
+               │ validated strategy logic
+               ▼
+┌──────────────────────────────┐
+│ Live Decision Engine         │
+│ (quant_live)                 │
+│                              │
+│ - Market data (EOD)          │
+│ - Drawdown / indicators      │
+│ - FX-aware sizing            │
+│ - Risk constraints           │
+│ - OrderIntent generation     │
+└──────────────┬───────────────┘
+               │
+               │ order intents (what to do)
+               ▼
+┌──────────────────────────────┐
+│ Broker Execution Layer       │
+│ (Trading212 API)             │
+│                              │
+│ - Account snapshot           │
+│ - Positions & orders         │
+│ - Market orders (demo/live)  │
+└──────────────────────────────┘
+'''
 
-Implemented strategies include:
-- Regular dollar-cost averaging (DCA)
-- Rolling drawdown-based accumulation strategies
-- Peak-to-trough drawdown buying rules
+**Key idea:**  
+Strategies never place trades directly. They generate **order intents**, which are validated, risk-checked, and optionally executed by a broker adapter.
 
-The framework is designed to be **extensible**, allowing future additions such as momentum, mean-reversion, or volatility-targeting strategies without modifying the core engine.
+## Project Goals
 
-Key design goals:
-- **Reproducibility** — environment snapshots and YAML-based experiment configs  
-- **Traceability** — timestamped outputs with archived parameter files  
-- **Separation of concerns** — strategy logic, execution, portfolio accounting, and metrics are decoupled  
-- **Clean analysis** — structured CSV outputs and comparison notebooks  
+- **Reproducible research** — YAML-configured backtests with archived parameters  
+- **Separation of concerns** — research logic, decision logic, and execution are isolated  
+- **Traceability** — every decision is logged with inputs, diagnostics, and reasoning  
+- **Safety-first live trading** — paper mode, idempotency, and validation by default  
+- **Extensibility** — new strategies, brokers, and risk rules can be added without refactoring core logic  
 
 ## Repository Structure
+'''
+Quant_Research/
+│
+├── pyproject.toml            # Python package metadata
+├── environment.yml           # Reproducible conda environment
+├── README.md
+│
+├── config/
+│   └── symbols.yml           # Internal symbol → broker instrument mapping
+│
+├── runs/                     # Backtest experiment configs
+├── live_runs/                # Live / paper-trading configs
+│
+├── outputs/                  # Backtest outputs
+├── live_outputs/             # Live decision artifacts
+│
+├── notebooks/                # Analysis & comparison notebooks
+│
+├── src/
+│   ├── quant_backtest/       # Research & backtesting engine
+│   │   ├── data.py
+│   │   ├── engine.py
+│   │   ├── portfolio.py
+│   │   ├── metrics.py
+│   │   ├── strategies/
+│   │   └── cli/
+│   │       └── run_strategy.py
+│   │
+│   └── quant_live/           # Live decision & execution framework
+│       ├── cli/
+│       │   └── run_live.py
+│       ├── broker/
+│       │   ├── trading212.py
+│       │   └── snapshot.py
+│       ├── strategies/
+│       │   ├── indicators.py
+│       │   └── adapter.py
+│       ├── execution/
+│       │   ├── orders.py
+│       │   └── risk.py
+│       └── data/
+│           └── fx.py
+│
+└── tests/
+'''
 
-    Quant_Research/
-    │
-    ├── pyproject.toml          # Python package metadata & dependencies
-    ├── environment.yml         # Reproducible conda environment
-    ├── README.md
-    │
-    ├── src/
-    │   └── quant_backtest/
-    │       ├── data.py         # Data loading & preprocessing
-    │       ├── engine.py       # Backtest orchestration
-    │       ├── portfolio.py    # Portfolio accounting
-    │       ├── metrics.py      # Performance metrics
-    │       │
-    │       ├── strategies/
-    │       │   ├── dca/        # DCA-style strategies
-    │       │   ├── momentum/   # (future extension)
-    │       │   └── ...
-    │       │
-    │       └── cli/
-    │           └── run_strategy.py   # Command-line interface
-    │
-    ├── runs/                   # YAML experiment configurations
-    ├── outputs/                # Backtest outputs (CSV / JSON)
-    ├── notebooks/              # Analysis & comparison notebooks
-    └── tests/                  # Unit tests (optional)
+## Backtesting Framework (`quant_backtest`)
 
-## Installation & Setup
+The backtesting engine provides a **vectorised, reproducible research environment** for systematic strategies.
 
-### 1. Clone the repository
-```bash
-git clone <your-repo-url>
-cd Quant_Research
+### Implemented strategy families
 
-conda env create -f environment.yml
-conda activate quant_research
+- Dollar-cost averaging (DCA)
+- Rolling drawdown accumulation
+- Peak-to-trough drawdown strategies
 
-pip install -e .
+### Design principles
 
-pip install ipykernel
-python -m ipykernel install --user --name quant_research --display-name "Python (quant_research)"
+- Strategy logic is **stateless and deterministic**
+- Portfolio accounting is **fully explicit**
+- Metrics are calculated post-run
+- All experiments are driven by YAML configs
 
+### Running Backtests
 
----
-
-### 5️⃣ Running Backtests
-
-```md
-## Running Backtests
-
-All strategies are executed via a command-line interface.
-
-### Recommended: run using a configuration file
-```bash
+'''bash
 python -m quant_backtest.cli.run_strategy \
   --config runs/strat3_peakdd_10pct_fixed_50.yml
+'''
 
-Each run:
+## Live Decision Framework (`quant_live`)
 
-- executes the strategy,
-- generates timestamped outputs,
-- copies the exact configuration file into `outputs/` for full reproducibility.
+The live framework **reuses research logic**, but runs it in a **state-aware, broker-integrated environment**.
 
----
+### What “live” means here
 
-### 6️⃣ Example Strategy Configuration
+- Pulls real broker state (cash, positions, pending orders)
+- Uses historical market data for signals
+- Generates **OrderIntents**, not trades
+- Can run in **paper mode** or **demo execution mode**
 
-```md
-## Example Strategy Configuration
+### OrderIntent Abstraction
 
-```yaml
-run_name: strat3_peakdd_10pct_fixed_50
-strategy: strat3
+'''python
+OrderIntent(
+    broker_ticker="VUSAl_EQ",
+    side="BUY",
+    quantity=0.0278,
+    reason="PeakDD trigger (ccy=GBP)",
+    est_price=683.17,
+    est_value_gbp=18.99
+    )
+'''
 
-start: "2005-01-01"
-source: stooq
-tickers: ["SPY", "ACWI"]
-weights: [0.7, 0.3]
+## Currency & FX Handling
 
-threshold: 0.10
-mode: fixed
-fixed: 50
+The system supports:
+
+- GBP instruments (no FX conversion)
+- USD instruments (GBPUSD FX conversion)
+- GBX instruments (pence → GBP normalization)
+
+Currency identification is sourced from:
+
+- Trading212 instrument metadata (authoritative)
+- Explicit symbol mapping (`symbols.yml`)
+- Defensive validation before execution
+
+## Live Run Outputs
+
+Each live run creates a fully auditable artifact:
+
+live_outputs/
+└── 20260103_131346_peakdd_demo/
+    └── decisions.json
 
 
----
+### `decisions.json` contains:
 
-### 7️⃣ Outputs
+- run configuration
+- broker snapshot (cash, positions, orders)
+- FX rates used
+- drawdown diagnostics
+- generated order intents
+- risk filters applied
 
-```md
-## Outputs
+This makes every decision **explainable and reproducible**.
 
-Each run produces the following artifacts:
+## Safety & Risk Controls
 
-outputs/
-├── <run_name>__<timestamp>.timeseries.csv
-├── <run_name>__<timestamp>.trades.csv
-├── <run_name>__<timestamp>.metrics.json
-└── <run_name>__<timestamp>.config.yml
+By design:
 
-### Timeseries CSV
-Daily portfolio state including:
-- portfolio value
-- contributions and cumulative contributions
-- drawdown
-- asset units
-- strategy-specific diagnostic series
+- **Paper mode is default**
+- Stale market data aborts runs
+- Unknown instruments abort runs
+- FX conversion must be explicit
+- Minimum order size enforced
+- Daily spend caps enforced
 
-### Trades CSV
-Every executed trade:
-- date
-- ticker
-- cash amount
-- units
-- execution price
+Live execution is opt-in and guarded.
 
-### Metrics JSON
-Summary statistics such as:
-- total contributions
-- terminal portfolio value
-- simple return
-- IRR (money-weighted)
-- TWR / CAGR (time-weighted)
-- maximum drawdown
-- number of trades
+## Extending the System
 
-### Config Archive
-A copy of the exact YAML configuration used to generate the run.
+### Add a new strategy
+- Implement it in `quant_backtest/strategies/`
+- Reuse logic in `quant_live/strategies/adapter.py`
 
-## Analysis & Visualisation
+### Add a new broker
+- Implement a new adapter in `quant_live/broker/`
+- Keep strategy logic unchanged
 
-A comparison notebook is provided:
-
-This notebook enables:
-- selection of specific runs,
-- side-by-side strategy comparison,
-- visualisation of portfolio value, drawdowns, and trade timing,
-- inspection of performance metrics in a clean comparison table.
-
-## Reproducibility
-
-To reproduce any result in this repository:
-
-1. Clone the repository  
-2. Create the conda environment using `environment.yml`  
-3. Install the package with `pip install -e .`  
-4. Re-run the corresponding YAML configuration under `runs/`  
-
-All runs are timestamped and self-documenting.
-
-## Extending the Framework
-
-To add a new strategy:
-
-1. Create a new module under `src/quant_backtest/strategies/<family>/`
-2. Implement the strategy interface
-3. Register the strategy in the CLI
-4. Add a YAML configuration under `runs/`
-
-The core engine and portfolio logic do **not** need to be modified to add new strategies.
+### Add risk rules
+- Extend `quant_live/execution/risk.py`
+- No changes required to strategy code
 
 ## Data Sources
 
-- **Stooq** (via `pandas-datareader`)  
-- **Yahoo Finance** (via `yfinance`, optional)
-
-Data caching is supported to reduce repeated downloads.
+- **Stooq** — historical market data  
+- **Yahoo Finance** — equities & FX (via `yfinance`)  
+- **Trading212 API** — account state and execution  
 
 ## Disclaimer
 
 This project is for **research and educational purposes only**.  
-It does not constitute financial advice and does not account for transaction costs, taxes, or slippage unless explicitly modeled.
+It does not constitute financial advice and does not guarantee profitability.
+
+Live trading components are implemented conservatively and should not be used without full understanding and independent verification.
 
 ## License
 
-This project is licensed under the **MIT License**.
+MIT License
