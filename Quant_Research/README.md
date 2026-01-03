@@ -9,7 +9,7 @@ Originally built as a **backtesting and research framework**, this project has e
 > Live trading components are implemented cautiously, with strong safety guards, and are not intended as a turnkey production trading system.
 
 ## High-Level Architecture
-'''
+
 ┌──────────────────────────────┐
 │ Research & Backtesting       │
 │ (quant_backtest)             │
@@ -43,7 +43,7 @@ Originally built as a **backtesting and research framework**, this project has e
 │ - Positions & orders         │
 │ - Market orders (demo/live)  │
 └──────────────────────────────┘
-'''
+
 
 **Key idea:**  
 Strategies never place trades directly. They generate **order intents**, which are validated, risk-checked, and optionally executed by a broker adapter.
@@ -57,7 +57,7 @@ Strategies never place trades directly. They generate **order intents**, which a
 - **Extensibility** — new strategies, brokers, and risk rules can be added without refactoring core logic  
 
 ## Repository Structure
-'''
+
 Quant_Research/
 │
 ├── pyproject.toml            # Python package metadata
@@ -101,7 +101,7 @@ Quant_Research/
 │           └── fx.py
 │
 └── tests/
-'''
+
 
 ## Backtesting Framework (`quant_backtest`)
 
@@ -122,10 +122,9 @@ The backtesting engine provides a **vectorised, reproducible research environmen
 
 ### Running Backtests
 
-'''bash
+bash
 python -m quant_backtest.cli.run_strategy \
   --config runs/strat3_peakdd_10pct_fixed_50.yml
-'''
 
 ## Live Decision Framework (`quant_live`)
 
@@ -140,7 +139,7 @@ The live framework **reuses research logic**, but runs it in a **state-aware, br
 
 ### OrderIntent Abstraction
 
-'''python
+python
 OrderIntent(
     broker_ticker="VUSAl_EQ",
     side="BUY",
@@ -149,7 +148,6 @@ OrderIntent(
     est_price=683.17,
     est_value_gbp=18.99
     )
-'''
 
 ## Currency & FX Handling
 
